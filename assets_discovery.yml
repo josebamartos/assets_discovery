@@ -1,0 +1,13 @@
+- hosts: all
+
+  tasks:
+    - name: Get facts
+      setup:
+      register: facts
+
+    - name: Assets discovery
+      assets_discovery:
+      register: assets
+
+    - debug: var=facts
+    - debug: var=assets
