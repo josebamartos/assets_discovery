@@ -1,4 +1,4 @@
-- hosts: jboss
+- hosts: all
 
   tasks:
     - name: Fact discovery
