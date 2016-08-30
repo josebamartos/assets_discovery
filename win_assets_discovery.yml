@@ -1,7 +1,7 @@
-- hosts: all
+- hosts: windows
 
   tasks:
-    - name: Get facts
+    - name: Fact discovery
       setup:
       register: facts
 
@@ -9,5 +9,25 @@
       win_assets_discovery:
       register: assets
 
-    - debug: var=facts
-    - debug: var=assets
+    - name: Unify outputs
+      set_fact:
+        output: "{{ facts|combine(assets) }}"
+        file_dir: "{{ lookup('env','HOME') }}/files/"
+
+    - name: Check if file dir exists
+      stat: path="{{ lookup('env','HOME') }}/files/"
+      register: check_path
+      delegate_to: 127.0.0.1
+
+    - name: Create output directory
+      file: path="{{ lookup('env','HOME') }}/files" state=directory
+      when: check_path.stat.exists == false
+      delegate_to: 127.0.0.1
+
+    - name: Copy assets to output file
+      copy: content="{{ output }}" dest="{{ lookup('env','HOME') }}/files/{{ ansible_hostname }}.json"
+      delegate_to: 127.0.0.1
+
+    - name: Transform output to CSV
+      script: "/usr/bin/env python ./scripts/win_json2csv.py {{ lookup('env','HOME') }}/files/{{ ansible_hostname }}.json"
+      delegate_to: 127.0.0.1

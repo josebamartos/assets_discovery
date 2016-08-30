@@ -74,7 +74,8 @@ $jboss_classifications = @{
 # Variables #
 #############
 
-$assets = @()
+$appservers = @()
+$databases  = @()
 $search_root = @(Get-WmiObject Win32_Volume -Filter "DriveType='3'"|select -expand driveletter)
 
 
@@ -177,75 +178,72 @@ foreach ($search_dir in $search_root){
         if (($filename -like '*\jboss-modules.jar') -And -Not ($filename -like '*installation\patches*'))  {
             $version = get_zipped_file_value $filename 'META-INF/maven/org.jboss.modules/jboss-modules/pom.properties' '.*version=(.*)'
             $pretty_version = jboss_pretty_version $version
-            $asset = @{"name" = "Red Hat JBoss $pretty_version"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Red Hat"; "name" = "JBoss"; "version" = $pretty_version; "path" = $filename}
+            $appservers += $asset
 
         # Red Hat JBoss EAP < 6
         } ElseIf ($filename -like '*\jboss-as\bin\run.jar') {
             $version = get_zipped_file_value $filename 'META-INF/MANIFEST.MF' '.*[CS]V[SN]Tag=(.*) .*'
             $pretty_version = jboss_pretty_version $version
-            $asset = @{"name" = "Red Hat JBoss $pretty_version"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Red Hat"; "name" = "JBoss"; "version" = $pretty_version; "path" = $filename}
+            $appservers += $asset
 
         # Oracle GlassFish 4
         } ElseIf ($filename -like '*\org.glassfish.main.admingui\war\pom.properties') {
             $version = get_value $filename 'version=(.*)'
-            $asset = @{"name" = "Oracle GlassFish $version"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Oracle"; "name" = "GlassFish"; "version" = $version; "path" = $filename}
+            $appservers += $asset
 
         # Oracle GlassFish 3
         } ElseIf ($filename -like '*\org.glassfish.admingui\war\pom.properties') {
             $version = get_value $filename 'version=(.*)'
-            $asset = @{"name" = "Oracle GlassFish $version"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Oracle"; "name" = "GlassFish"; "version" = $version; "path" = $filename}
+            $appservers += $asset
 
         # Oracle WebLogic 12
         } ElseIf ($filename -like '*\server\lib\build-versions.properties') {
             $version = get_value $filename 'version.weblogic.server.modules=(.*)'
-            $asset = @{"name" = "Oracle WebLogic $version"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Oracle"; "name" = "WebLogic"; "version" = $version; "path" = $filename}
+            $appservers += $asset
 
         # Oracle WebLogic 11
         } ElseIf ($filename -like '*\modules\features\weblogic.server.modules_*' -And $filename.EndsWith('.xml')) {
             $version = get_value $filename 'id="weblogic.server.modules" version="(.*)" xmlns="http://www.bea.com/ns/cie/feature" '
-            $asset = @{"name" = "Oracle WebLogic $version"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Oracle"; "name" = "WebLogic"; "version" = $version; "path" = $filename}
+            $appservers += $asset
 
         # IBM WebSphere
         } ElseIf ($filename -like '*\config\cells\*' -And $filename.EndsWith('server.xml')) {
-            $asset = @{"name" = "IBM WebSphere"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "IBM"; "name" = "WebSphere"; "version" = $version; "path" = $filename}
+            $appservers += $asset
 
         # PostgreSQL
         } elseif ($filename -like '*\data\postgresql.conf') {
-            $asset = @{"name" = "PostgreSQL"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "PGDG"; "name" = "PostgreSQL"; "version" = "Unknown"; "path" = $filename}
+            $databases += $asset
 
         # MariaDB/MySQL
         } elseif ($filename.endswith('my.ini') -or $filename.endswith('my.cnf')){
-            $asset = @{"name" = "MariaDB/MySQL"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Oracle/MariaDB"; "name" = "MariaDB/MySQL"; "version" = "Unknown"; "path" = $filename}
+            $databases += $asset
 
         # Oracle Database
         } ElseIf ($filename -like '*\bin\dbca.exe') {
-            $asset = @{"name" = "Oracle Database"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Oracle"; "name" = "Database"; "version" = "Unknown"; "path" = $filename}
+            $databases += $asset
 
         # Micosoft SQL Server
         } ElseIf (($filename -like '*\sqlservr.exe') -And -Not ($filename -like '*\WinSxS\*')) {
-            $asset = @{"name" = "Microsoft SQL Server"; "path" = $filename}
-            $assets += $asset
+            $asset = @{"vendor" = "Microsot"; "name" = "SQL Server"; "version" = "Unknown"; "path" = $filename}
+            $databases += $asset
 
         }
     }
 }
 
-$out_hostname = get_hostname
-$out_cores    = get_cores
-$out_assets   = $assets
-
-Set-Attr $module "hostname" $out_hostname
-Set-Attr $module "cores"    $out_cores
-Set-Attr $module "assets"   $out_assets
+Set-Attr $module "hostname"   get_hostname
+Set-Attr $module "cores"      get_cores
+Set-Attr $module "appservers" $appservers
+Set-Attr $module "databases"  $databases
 
 Exit-Json $module

@@ -81,7 +81,9 @@ def main():
     # Variables #
     #############
 
-    assets = []
+    assets      = []
+    appservers  = []
+    databases   = []
     search_root = ['/etc', '/home', '/var', '/usr', '/opt', '/root']
 
 
@@ -173,73 +175,73 @@ def main():
                 if 'jboss-modules.jar' in filename and not '.installation/patches' in filename:
                     version = get_zipped_file_value(filename, 'META-INF/maven/org.jboss.modules/jboss-modules/pom.properties', 'version=(.*)')
                     pretty_version = jboss_pretty_version(version)
-                    asset = {"name": "Red Hat JBoss " + pretty_version, "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Red Hat", "name": "JBoss", "version": pretty_version, "path": filename}
+                    appservers.append(asset)
 
                 # Red Hat JBoss EAP < 6
                 if '/jboss-as/bin/run.jar' in filename:
                     version = get_zipped_file_value(filename, 'META-INF/MANIFEST.MF', '.*[CS]V[SN]Tag=(.*) .*')
                     pretty_version = jboss_pretty_version(version)
-                    asset = {"name": "Red Hat JBoss " + pretty_version, "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Red Hat", "name": "JBoss", "version": pretty_version, "path": filename}
+                    appservers.append(asset)
 
                 # Oracle GlassFish 4
                 if '/org.glassfish.main.admingui/war/pom.properties' in filename:
                     version = get_value(filename, 'version=(.*)')
-                    asset = {"name": "Oracle GlassFish " + version, "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Oracle", "name": "GlassFish", "version": version, "path": filename}
+                    appservers.append(asset)
 
                 # Oracle GlassFish 3
                 if '/org.glassfish.admingui/war/pom.properties' in filename:
                     version = get_value(filename, 'version=(.*)')
-                    asset = {"name": "Oracle GlassFish " + version, "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Oracle", "name": "GlassFish", "version": version, "path": filename}
+                    appservers.append(asset)
 
                 # Oracle WebLogic 12
                 if '/server/lib/build-versions.properties' in filename:
                     version = get_value(filename, 'version.weblogic.server.modules=(.*)')
-                    asset = {"name": "Oracle WebLogic " + version, "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Oracle", "name": "WebLogic", "version": version, "path": filename}
+                    appservers.append(asset)
 
                 # Oracle WebLogic 11
                 if '/modules/features/weblogic.server.modules_' in filename and filename.endswith('.xml'):
                     version = get_value(filename, 'id="weblogic.server.modules" version="(.*)" xmlns="http://www.bea.com/ns/cie/feature"')
-                    asset = {"name": "Oracle WebLogic " + version, "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Oracle", "name": "WebLogic", "version": version, "path": filename}
+                    appservers.append(asset)
 
                 # IBM WebSphere
                 if '/config/cells/' in filename and filename.endswith('server.xml'):
-                    asset = {"name": "IBM WebSphere", "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "IBM", "name": "WebSphere", "version": "Unknown", "path": filename}
+                    appservers.append(asset)
 
                 # PostgreSQL
                 if '/data/postgresql.conf' in filename:
-                    asset = {"name": "PostgreSQL", "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "PGDG", "name": "PostgreSQL", "version": "Unknown", "path": filename}
+                    databases.append(asset)
 
                 # MariaDB/MySQL
                 if filename.endswith('/my.cnf') or filename.endswith('/my.ini'):
-                    asset = {"name": "MariaDB/MySQL", "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "MariaDB/Oracle", "name": "MariaDB/MySQL", "version":"Unknown", "path": filename}
+                    databases.append(asset)
 
                 # Oracle Database
                 if '/bin/dbca' in filename:
-                    asset = {"name": "Oracle Database", "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor": "Oracle", "name": "Database", "version":"Unknown", "path": filename}
+                    databases.append(asset)
 
                 # Microsoft SQL Server
                 if '/sqlservr' in filename:
-                    asset = {"name": "Microsoft SQL Server", "path": filename}
-                    assets.append(asset)
+                    asset = {"vendor":"Microsoft", "name": "SQL Server", "version": "Unknown", "path": filename}
+                    databases.append(asset)
 
     out_hostname = get_hostname()
     out_cores    = get_cores()
-    out_assets   = assets
 
     module.exit_json(
-        hostname = out_hostname,
-        cores    = out_cores,
-        assets   = out_assets
+        hostname   = get_hostname(),
+        cores      = get_cores(),
+        appservers = appservers,
+        databases  = databases
     )
 
 from ansible.module_utils.basic import AnsibleModule
