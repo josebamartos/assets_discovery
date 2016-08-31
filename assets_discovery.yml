@@ -1,4 +1,4 @@
-- hosts: jboss, windows
+- hosts: all
 
   vars:
     output_dir: "{{ lookup('env','HOME') }}/files"
