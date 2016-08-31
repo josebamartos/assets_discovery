@@ -1,33 +1,61 @@
-- hosts: all
+- hosts: jboss, windows
+
+  vars:
+    output_dir: "{{ lookup('env','HOME') }}/files"
 
   tasks:
+
+    - name: set fact
+      set_fact: 
+        asset_list: []
+
     - name: Fact discovery
       setup:
       register: facts
 
-    - name: Assets discovery
+    - name: Asset discovery on Linux
       assets_discovery:
-      register: assets
+      register: linux_assets
+      when: ansible_system == "Linux"
 
-    - name: Unify outputs
+    - name: Loading Linux assets if exists
       set_fact:
-        output: "{{ facts|combine(assets) }}"
-        file_dir: "{{ lookup('env','HOME') }}/files/"
+        assets: "{{ linux_assets }}"
+      when: ansible_system == "Linux"
 
-    - name: Check if file dir exists
-      stat: path="{{ lookup('env','HOME') }}/files/"
-      register: check_path
+    - name: Asset discovery on Windows
+      win_assets_discovery:
+      register: windows_assets
+      when: ansible_system == "Win32NT"
+
+    - name: Loading Windows assets if exists
+      set_fact:
+        assets: "{{ windows_assets }}"
+      when: ansible_system == "Win32NT"
+
+    - name: Combining facts and assets
+      set_fact:
+        json_out: "{{ facts|combine(assets) }}"
+
+    - name: Converting data from JSON to CSV
+      script: "/usr/bin/env python ./scripts/json2csv.py {{ json_out | to_json | quote }}"
+      register: csv_out
       delegate_to: 127.0.0.1
 
-    - name: Create output directory
-      file: path="{{ lookup('env','HOME') }}/files" state=directory
-      when: check_path.stat.exists == false
+    - name: Checking output directory existence
+      stat: path="{{ output_dir }}"
+      register: dir_out
       delegate_to: 127.0.0.1
 
-    - name: Copy assets to output file
-      copy: content="{{ output }}" dest="{{ lookup('env','HOME') }}/files/{{ ansible_hostname }}.json"
+    - name: Creating output directory
+      file: path="{{ output_dir }}" state=directory
+      when: dir_out.stat.exists == false
       delegate_to: 127.0.0.1
 
-    - name: Transform output to CSV
-      script: "/usr/bin/env python ./scripts/json2csv.py {{ lookup('env','HOME') }}/files/{{ ansible_hostname }}.json"
+    - name: Writing data to JSON file
+      copy: content="{{ json_out }}" dest="{{ output_dir }}/{{ ansible_hostname }}.json"
+      delegate_to: 127.0.0.1
+
+    - name: Writing data to CSV file
+      copy: content="{{ csv_out.stdout }}" dest="{{ output_dir  }}/{{ ansible_hostname }}.csv"
       delegate_to: 127.0.0.1

@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
 def main():
+
+    ###########
+    # Modules #
+    ###########
+
     import multiprocessing
     import os
     import random
@@ -77,9 +82,9 @@ def main():
     }
 
 
-    #############
-    # Variables #
-    #############
+    ####################
+    # Preset Variables #
+    ####################
 
     assets      = []
     appservers  = []

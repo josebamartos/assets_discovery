@@ -70,9 +70,9 @@ $jboss_classifications = @{
 }
 
 
-#############
-# Variables #
-#############
+####################
+# Preset variables #
+####################
 
 $appservers = @()
 $databases  = @()
