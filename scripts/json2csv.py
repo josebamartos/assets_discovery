@@ -81,7 +81,8 @@ if data["ansible_facts"]["ansible_system"] == "Linux":
     databases    = get_assets(data["databases"])
 
     # CSV
-    headers = ["Hostname", "Domain", "IPv4", "Netmask", "IPv6", "Architecture", "Processor", "Processors", "Cores", "VCPUs""Swap", "Used swap", "Free swap", "Mem", "Used mem", "Free mem", "Drives", "Virt type", "Virt role", "System", "OS Family", "Distribution", "Release", "Version", "Appservers", "Databases"]
+    titles  = [SERVIDOR,,,,,PROCESADOR,,,,,MEMORIA,,,,,,ALMACENAMIENTO,VIRTUALIZACION,,SISTEMA OPERATIVO,,,,,APP SERVER,BASE DE DATOS]
+    headers = ["Hostname", "Domain", "IPv4", "Netmask", "IPv6", "Architecture", "Processor", "Processors", "Cores", "VCPUs", "Swap", "Used swap", "Free swap", "Mem", "Used mem", "Free mem", "Drives", "Virt type", "Virt role", "System", "OS Family", "Distribution", "Release", "Version", "Appservers", "Databases"]
     row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, appservers, databases]
 
 
@@ -118,6 +119,7 @@ if data["ansible_facts"]["ansible_system"] == "Win32NT":
 
 csv_buffer = StringIO.StringIO()
 writer = csv.writer(csv_buffer, delimiter=',')
+writer.writerow(titles)
 writer.writerow(headers)
 writer.writerow(row)
 csv_content = csv_buffer.getvalue()
