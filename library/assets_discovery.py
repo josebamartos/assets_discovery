@@ -226,12 +226,7 @@ def main():
                     asset = {"vendor":"Microsoft", "name": "SQL Server", "version": "Unknown", "path": filename}
                     databases.append(asset)
 
-    out_hostname = get_hostname()
-    out_cores    = get_cores()
-
     module.exit_json(
-        hostname   = get_hostname(),
-        cores      = get_cores(),
         appservers = appservers,
         databases  = databases
     )
