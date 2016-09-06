@@ -113,6 +113,7 @@ if data["ansible_facts"]["ansible_system"] == "Win32NT":
     databases = get_assets(data["databases"])
 
     # CSV
+    titles  = ["SERVER", "", "", "PROCESSOR", "", "", "", "", "MEMORY", "OS", "", "", "", "APP SERVER", "DATA BASE"]
     headers = ["Hostname", "Domain", "IPs", "Architecture", "Processor", "Processors", "Cores", "VCPUs", "Mem", "System", "OS Family", "Distribution", "Version", "Appservers", "Databases"]
     row     = [hostname, domain, ips, architecture, processor, processors, cores, vcpus, mem_total, system, os_family, distribution, version, appservers, databases]
 
