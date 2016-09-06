@@ -109,19 +109,6 @@ def main():
         file_stream.close()
 
 
-    def get_cores():
-        if sys.version_info >= (2,6):
-            cores = multiprocessing.cpu_count()
-        else:
-            cores = open('/proc/cpuinfo').read().count('processor\t:')
-        return cores
-
-
-    def get_hostname():
-        hostname = socket.gethostname()
-        return hostname
-
-
     def get_value(filename, regexp):
         value = ""
         text = open(filename).readlines()

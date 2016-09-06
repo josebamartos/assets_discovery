@@ -49,9 +49,10 @@ if data["ansible_facts"]["ansible_system"] == "Linux":
 
     # Processor
     architecture = data["ansible_facts"]["ansible_architecture"]
-    processors   = str(data["ansible_facts"]["ansible_processor_count"])
-    cores        = str(data["ansible_facts"]["ansible_processor_cores"])
     processor    = " ".join(data["ansible_facts"]["ansible_processor"])
+    processors   = str(data["ansible_facts"]["ansible_processor_count"])
+    cores        = str(data["ansible_facts"]["ansible_processor_cores"] * int(processors))
+    vcpus        = str(data["ansible_facts"]["ansible_processor_vcpus"])
 
     # Memory
     swap_total   = str(data["ansible_facts"]["ansible_memory_mb"]["swap"]["total"])
@@ -80,8 +81,8 @@ if data["ansible_facts"]["ansible_system"] == "Linux":
     databases    = get_assets(data["databases"])
 
     # CSV
-    headers = ["Hostname", "Domain", "IPv4", "Netmask", "IPv6", "Architecture", "Processors", "Processor", "Cores", "Swap", "Used swap", "Free swap", "Mem", "Used mem", "Free mem", "Drives", "Virt type", "Virt role", "System", "OS Family", "Distribution", "Release", "Version", "Appservers", "Databases"]
-    row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processors, processor, cores, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, appservers, databases]
+    headers = ["Hostname", "Domain", "IPv4", "Netmask", "IPv6", "Architecture", "Processor", "Processors", "Cores", "VCPUs""Swap", "Used swap", "Free swap", "Mem", "Used mem", "Free mem", "Drives", "Virt type", "Virt role", "System", "OS Family", "Distribution", "Release", "Version", "Appservers", "Databases"]
+    row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, appservers, databases]
 
 
 if data["ansible_facts"]["ansible_system"] == "Win32NT":
@@ -92,8 +93,10 @@ if data["ansible_facts"]["ansible_system"] == "Win32NT":
 
     # Processor
     architecture = data["ansible_facts"]["ansible_env"]["PROCESSOR_IDENTIFIER"]
-    processors   = data["ansible_facts"]["ansible_env"]["NUMBER_OF_PROCESSORS"]
     processor    = data["ansible_facts"]["ansible_env"]["PROCESSOR_IDENTIFIER"]
+    processors   = data["processors"]
+    cores        = data["cores"]
+    vcpus        = data["vcpus"]
 
     # Memory
     mem_total  = str(data["ansible_facts"]["ansible_totalmem"])
@@ -109,8 +112,8 @@ if data["ansible_facts"]["ansible_system"] == "Win32NT":
     databases = get_assets(data["databases"])
 
     # CSV
-    headers = ["Hostname", "Domain", "IPs", "Architecture", "Processors", "Processor", "Mem", "System", "OS Family", "Distribution", "Version", "Appservers", "Databases"]
-    row     = [hostname, domain, ips, architecture, processors, processor, mem_total, system, os_family, distribution, version, appservers, databases]
+    headers = ["Hostname", "Domain", "IPs", "Architecture", "Processor", "Processors", "Cores", "VCPUs", "Mem", "System", "OS Family", "Distribution", "Version", "Appservers", "Databases"]
+    row     = [hostname, domain, ips, architecture, processor, processors, cores, vcpus, mem_total, system, os_family, distribution, version, appservers, databases]
 
 
 csv_buffer = StringIO.StringIO()

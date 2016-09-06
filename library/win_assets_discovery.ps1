@@ -97,15 +97,6 @@ function extract_file ($archive, $filename, $output){
     $file_stream.Close()
 }
 
-function get_cores(){
-    $cores = @(gwmi -Class Win32_ComputerSystemProcessor).Count
-    return $cores
-}
-
-function get_hostname(){
-    $hostname = (Get-WmiObject win32_computersystem).DNSHostName+"."+(Get-WmiObject win32_computersystem).Domain
-    return $hostname
-}
 
 function get_value($file, $regexp){
     $value = ""
@@ -166,6 +157,24 @@ function rm_dir($tmp_dir){
     Remove-Item -Recurse -Force $tmp_dir
 }
 
+
+# Custom discovery of processors due to some missing facts
+
+function get_processors(){
+    $processors = Get-WmiObject -Class Win32_ComputerSystem | select -ExpandProperty "NumberOfProcessors"
+    return $processors
+}
+
+function get_cores(){
+    $cores = 0
+    Get-WmiObject -Class Win32_Processor | select -ExpandProperty "NumberOfCores" | Foreach { $cores += $_}
+    return $cores
+}
+
+function get_vcpus(){
+    $vcpus = Get-WmiObject -Class Win32_ComputerSystem | select -ExpandProperty "NumberOfLogicalProcessors"
+    return $vcpus
+}
 
 ################
 # Main program #
@@ -241,8 +250,13 @@ foreach ($search_dir in $search_root){
     }
 }
 
-Set-Attr $module "hostname"   get_hostname
-Set-Attr $module "cores"      get_cores
+$processors = get_processors
+$cores      = get_cores
+$vcpus      = get_vcpus
+
+Set-Attr $module "processors" $processors
+Set-Attr $module "cores"      $cores
+Set-Attr $module "vcpus"      $vcpus
 Set-Attr $module "appservers" $appservers
 Set-Attr $module "databases"  $databases
 
