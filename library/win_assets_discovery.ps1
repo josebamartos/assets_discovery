@@ -160,6 +160,44 @@ function rm_dir($tmp_dir){
 
 # Custom discovery of processors due to some missing facts
 
+function get_hostname(){
+    $hostname = (Get-WmiObject Win32_ComputerSystem).Name
+    return $hostname
+}
+
+function get_domain(){
+    $domain = (Get-WmiObject Win32_ComputerSystem).Domain
+    return $domain
+}
+
+function get_ipv4(){
+    $ipv4= foreach ( $i in (Get-WmiObject Win32_NetworkAdapterConfiguration -Namespace "root\CIMV2" | where { $_.IPEnabled -eq "True" } | select IPAddress) ) { $i.IPAddress[0] }
+    $ipv4 = [System.String]::Join(", ", $ipv4)
+    return $ipv4
+}
+
+function get_netmask(){
+    $netmask = foreach ( $i in (ipconfig | Select-String "Subnet Mask" )) { ($i -split ":")[1].Trim() }
+    $netmask = [System.String]::Join(", ", $netmask)
+    return $netmask
+}
+
+function get_ipv6(){
+    $ipv6= foreach ( $i in (Get-WmiObject Win32_NetworkAdapterConfiguration -Namespace "root\CIMV2" | where { $_.IPEnabled -eq "True" } | select IPAddress) ) { $i.IPAddress[1] }
+    $ipv6 = [System.String]::Join(", ", $ipv6)
+    return $ipv6
+}
+
+function get_architecture(){
+    $architecture = (Get-WmiObject -Class Win32_ComputerSystem).SystemType
+    return $architecture
+}
+
+function get_processor(){
+    $processor = (Get-WmiObject Win32_Processor).Manufacturer[0] + " " + (Get-WmiObject Win32_Processor).Name[0]
+    return $processor
+}
+
 function get_processors(){
     $processors = Get-WmiObject -Class Win32_ComputerSystem | select -ExpandProperty "NumberOfProcessors"
     return $processors
@@ -174,6 +212,37 @@ function get_cores(){
 function get_vcpus(){
     $vcpus = Get-WmiObject -Class Win32_ComputerSystem | select -ExpandProperty "NumberOfLogicalProcessors"
     return $vcpus
+}
+
+function get_mem_total(){
+    $mem_total = [math]::Round((Get-WmiObject win32_OperatingSystem).TotalVisibleMemorySize / 1024)
+    return $mem_total
+}
+
+function get_mem_used(){
+    $mem_total = [math]::Round((Get-WmiObject win32_OperatingSystem).TotalVisibleMemorySize / 1024)
+    $mem_free = [math]::Round((Get-WmiObject win32_OperatingSystem).FreePhysicalMemory / 1024)
+    $mem_used = $mem_total - $mem_free
+    return $mem_used
+}
+
+function get_mem_free(){
+    $mem_free = [math]::Round((Get-WmiObject win32_OperatingSystem).FreePhysicalMemory / 1024)
+    return $mem_free
+}
+
+function get_devices(){
+    $devices = foreach ( $i in (Get-WmiObject Win32_DiskDrive)) { (($i).DeviceID -split "\\")[3] + " (" + [math]::Round(($i).Size / 1048576) / 1024 + " GB)" }
+    $devices = [System.String]::Join(", ", $devices)
+    $devices
+}
+
+function get_virt_type(){
+    (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
+}
+
+function get_virt_role(){
+    (Get-WmiObject -Class Win32_ComputerSystem).Model
 }
 
 ################
@@ -250,14 +319,46 @@ foreach ($search_dir in $search_root){
     }
 }
 
-$processors = get_processors
-$cores      = get_cores
-$vcpus      = get_vcpus
+$hostname     = get_hostname
+$domain       = get_domain
+$ipv4         = get_ipv4
+$netmask      = get_netmask
+$ipv6         = get_ipv6
+$architecture = get_architecture
+$processor    = get_processor
+$processors   = get_processors
+$cores        = get_cores
+$vcpus        = get_vcpus
+$swap_total   = ""
+$swap_used    = ""
+$swap_free    = ""
+$mem_total    = get_mem_total
+$mem_used     = get_mem_used
+$mem_free     = get_mem_free
+$drives       = get_devices
+$virt_type    = get_virt_type
+$virt_role    = get_virt_role
 
-Set-Attr $module "processors" $processors
-Set-Attr $module "cores"      $cores
-Set-Attr $module "vcpus"      $vcpus
-Set-Attr $module "appservers" $appservers
-Set-Attr $module "databases"  $databases
+Set-Attr $module "win_hostname"            $hostname
+Set-Attr $module "win_domain"              $domain
+Set-Attr $module "win_all_ipv4_addresses"  $ipv4
+Set-Attr $module "win_netmask"             $netmask
+Set-Attr $module "win_all_ipv6_addresses"  $ipv6
+Set-Attr $module "win_architecture"        $architecture
+Set-Attr $module "win_processor"           $processor
+Set-Attr $module "win_processor_count"     $processors
+Set-Attr $module "win_processor_cores"     $cores
+Set-Attr $module "win_processor_vcpus"     $vcpus
+Set-Attr $module "win_swap_total"          $swap_total
+Set-Attr $module "win_swap_used"           $swap_used
+Set-Attr $module "win_swap_free"           $swap_free
+Set-Attr $module "win_mem_total"           $mem_total
+Set-Attr $module "win_mem_used"            $mem_used
+Set-Attr $module "win_mem_free"            $mem_free
+Set-Attr $module "win_devices"             $drives
+Set-Attr $module "win_virtualization_type" $virt_type
+Set-Attr $module "win_virtualization_role" $virt_role
+Set-Attr $module "appservers"              $appservers
+Set-Attr $module "databases"               $databases
 
 Exit-Json $module
