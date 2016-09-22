@@ -6,7 +6,6 @@ def main():
     # Modules #
     ###########
 
-    import multiprocessing
     import os
     import random
     import re
