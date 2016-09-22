@@ -131,40 +131,39 @@ elif len(appservers) < len(databases):
 csv_buffer = StringIO.StringIO()
 writer = csv.writer(csv_buffer, delimiter=',')
 
-for i in range(0, asset_num - 1):
-    as_vendor  = ""
-    as_name    = ""
-    as_version = ""
-    as_path    = ""
-
-    db_vendor  = ""
-    db_name    = ""
-    db_version = ""
-    db_path    = ""
-
-    try:
-        as_vendor = appservers[i]["vendor"]
-        as_name = appservers[i]["name"]
-        as_version = appservers[i]["version"]
-        as_path = appservers[i]["path"]
-    except:
-        pass
-
-    try:
-        db_vendor = databases[i]["vendor"]
-        db_name = databases[i]["name"]
-        db_version = databases[i]["version"]
-        db_path = databases[i]["path"]
-    except:
-        pass
-
-#    if i == 0:
-#        row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, as_vendor, as_name, as_version, as_path, db_vendor, db_name, db_version, db_path]
-#    elif i > 0:
-#       row     = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", as_vendor, as_name, as_version, as_path, db_vendor, db_name, db_version, db_path]
-
-    row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, as_vendor, as_name, as_version, as_path, db_vendor, db_name, db_version, db_path]
+if asset_num == 0:
+    row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, "", "", "", "", "", "", "", ""]
     writer.writerow(row)
+elif asset_num > 0:
+    for i in range(0, asset_num - 1):
+        as_vendor  = ""
+        as_name    = ""
+        as_version = ""
+        as_path    = ""
+        
+        db_vendor  = ""
+        db_name    = ""
+        db_version = ""
+        db_path    = ""
+        
+        try:
+            as_vendor = appservers[i]["vendor"]
+            as_name = appservers[i]["name"]
+            as_version = appservers[i]["version"]
+            as_path = appservers[i]["path"]
+        except:
+            pass
+        
+        try:
+            db_vendor = databases[i]["vendor"]
+            db_name = databases[i]["name"]
+            db_version = databases[i]["version"]
+            db_path = databases[i]["path"]
+        except:
+            pass
+        
+        row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, as_vendor, as_name, as_version, as_path, db_vendor, db_name, db_version, db_path]
+        writer.writerow(row)
 
 csv_content = csv_buffer.getvalue()
 csv_buffer.close()
