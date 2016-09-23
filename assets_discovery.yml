@@ -40,59 +40,74 @@
       set_fact:
         json_out: "{{ facts|combine(assets) }}"
 
-    - name: Converting data from JSON to CSV
-      script: "/usr/bin/env python ./scripts/json2csv.py {{ json_out | to_json | quote }}"
-      register: csv_out
-      delegate_to: 127.0.0.1
+#    - name: Converting data from JSON to CSV
+#      script: "/usr/bin/env python ./scripts/json2csv.py {{ json_out | to_json | quote }}"
+#      register: csv_out
+#      delegate_to: 127.0.0.1
 
-    - name: Checking output directory existence
-      stat: path="{{ output_dir }}"
-      register: dir_out
-      delegate_to: 127.0.0.1
+#    - name: Checking output directory existence
+#      stat: path="{{ output_dir }}"
+#      register: dir_out
+#      delegate_to: 127.0.0.1
 
     - name: Creating output directory
       file: path="{{ output_dir }}" state=directory
-      when: dir_out.stat.exists == false
+#      when: dir_out.stat.exists == false
       delegate_to: 127.0.0.1
 
-    - name: Checking JSON file existence
-      stat: path="{{ output_dir  }}/{{ output_file }}.json"
-      register: json_path
+    - name: JSON to CSV converter and exporter
+      script: "/usr/bin/env python ./scripts/json2csv.py {{ json_out | to_json | quote }} {{ output_dir }}/{{ output_file }}"
+      register: csv_out
       delegate_to: 127.0.0.1
 
-    - name: Creating output JSON file
-      file: path="{{ output_dir  }}/{{ output_file }}.json" state=touch
-      when: json_path.stat.exists == false
-      delegate_to: 127.0.0.1
+#    - name: Checking JSON file existence
+#      stat: path="{{ output_dir  }}/{{ output_file }}.json"
+#      register: json_path
+#      delegate_to: 127.0.0.1
 
-    - name: Writing data to JSON file
-      lineinfile: dest="{{ output_dir  }}/{{ output_file }}.json"
-        regexp=''
-        insertafter=EOF
-        line="{{ json_out }}"
-      delegate_to: 127.0.0.1
+#    - name: Creating output JSON file
+#      file: path="{{ output_dir  }}/{{ output_file }}.json" state=touch
+#      when: json_path.stat.exists == false
+#      delegate_to: 127.0.0.1
 
-    - name: Checking CSV file existence
-      stat: path="{{ output_dir  }}/{{ output_file }}.csv"
-      register: csv_path
-      delegate_to: 127.0.0.1
+#    - name: Writing data to JSON file
+#      lineinfile: dest="{{ output_dir  }}/{{ output_file }}.json"
+#        regexp='^'
+#        insertafter=EOF
+#        line="{{ json_out }}"
+#        state=present
+#        create=True
+#      delegate_to: 127.0.0.1
 
-    - name: Creating output CSV file
-      file: path="{{ output_dir  }}/{{ output_file }}.csv" state=touch
-      when: csv_path.stat.exists == false
-      delegate_to: 127.0.0.1
+#    - name: Checking CSV file existence
+#      stat: path="{{ output_dir  }}/{{ output_file }}.csv"
+#      register: csv_path
+#      delegate_to: 127.0.0.1
 
-    - name: Writing headers to CSV file
-      lineinfile: dest="{{ output_dir  }}/{{ output_file }}.csv"
-        regexp=''
-        insertafter=EOF
-        line="{{ csv_headers }}"
-      when: csv_path.stat.exists == false
-      delegate_to: 127.0.0.1
+#    - name: Creating output CSV file
+#      file: path="{{ output_dir  }}/{{ output_file }}.csv" state=touch
+#      when: csv_path.stat.exists == false
+#      delegate_to: 127.0.0.1
 
-    - name: Writing data to CSV file
-      lineinfile: dest="{{ output_dir  }}/{{ output_file }}.csv"
-        regexp=''
-        insertafter=EOF
-        line="{{ csv_out.stdout }}"
-      delegate_to: 127.0.0.1
+#    - name: Writing headers to CSV file
+#      lineinfile: dest="{{ output_dir  }}/{{ output_file }}.csv"
+#        regexp=''
+#        insertafter=EOF
+#        line="{{ csv_headers }}"
+#      when: csv_path.stat.exists == false
+#      delegate_to: 127.0.0.1
+
+#    - name: Writing data to CSV file
+#      lineinfile: dest="{{ output_dir  }}/{{ output_file }}.csv"
+#        regexp=''
+#        insertafter=EOF
+#        line="{{ csv_out.stdout }}"
+#      delegate_to: 127.0.0.1
+
+    - name: JSON objects
+      debug:
+        var: csv_out.stdout
+
+    - name: CSV records
+      debug:
+        var: csv_out.stdout

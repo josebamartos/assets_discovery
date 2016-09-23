@@ -2,11 +2,12 @@
 # Modules #
 ###########
 
+import shutil
 import csv
 import json
 import StringIO
 import sys
-
+import shutil
 
 #############
 # Functions #
@@ -35,7 +36,8 @@ def get_assets(assets):
 # Main program #
 ################
 
-data = json.loads(sys.argv[1])
+data     = json.loads(sys.argv[1])
+path_out = sys.argv[2]
 
 if data["ansible_facts"]["ansible_system"] == "Linux":
     # Netorking
@@ -135,7 +137,7 @@ if asset_num == 0:
     row     = [hostname, domain, ipv4, netmask, ipv6, architecture, processor, processors, cores, vcpus, swap_total, swap_used, swap_free, mem_total, mem_used, mem_free, drives, virt_type, virt_role, system, os_family, distribution, release, version, "", "", "", "", "", "", "", ""]
     writer.writerow(row)
 elif asset_num > 0:
-    for i in range(0, asset_num - 1):
+    for i in range(0, asset_num):
         as_vendor  = ""
         as_name    = ""
         as_version = ""
@@ -166,6 +168,15 @@ elif asset_num > 0:
         writer.writerow(row)
 
 csv_content = csv_buffer.getvalue()
-csv_buffer.close()
+#csv_buffer.close()
+
+with open (path_out + '.csv', 'a') as csv_file:
+    csv_buffer.seek (0)
+    shutil.copyfileobj (csv_buffer, csv_file)
+    csv_buffer.close()
+
+with open (path_out + '.json', 'a') as json_file:
+    json.dump(data, json_file)
+    json_file.write("\n")
 
 print csv_content
