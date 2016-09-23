@@ -106,7 +106,7 @@
 
     - name: JSON objects
       debug:
-        var: csv_out.stdout
+        var: json_out
 
     - name: CSV records
       debug:
